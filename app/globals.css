@@ -1,0 +1,834 @@
+@import "tailwindcss";
+
+/* ─── Design tokens ────────────────────────────────────────────────── */
+:root {
+  /* MANDATORY: Automatically adapt native UI to user system preferences */
+  color-scheme: light dark;
+
+  /* Dark theme (default) */
+  --bg: #151515;
+  --surface: #1c1c1c;
+  --line: #343434;
+  --text: #f1f1f1;
+  --muted: #b1b1b1;
+  --accent: #75d5ab;
+  --accent-text: #75d5ab;
+  --notice-border: #c97e3d;
+  --notice-bg: color-mix(in srgb, #c97e3d 12%, #1c1c1c);
+  --gain-bg: #17382b;
+  --gain-text: #a1efc6;
+  --gain-border: #34634f;
+  --loss-bg: #412526;
+  --loss-text: #ffc1c2;
+  --loss-border: #744243;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f8f7;
+    --surface: #fff;
+    --line: #d4dbd7;
+    --text: #202621;
+    --muted: #4f5c55;
+    --accent: #75d5ab;
+    --accent-text: #176540;
+    --notice-border: #b86d20;
+    --notice-bg: color-mix(in srgb, #c97e3d 10%, #fff);
+    --gain-bg: #dcf3e5;
+    --gain-text: #135b38;
+    --gain-border: #a3d3b7;
+    --loss-bg: #fbe3e3;
+    --loss-text: #8c292e;
+    --loss-border: #e5aeb1;
+  }
+}
+
+/* ─── Base ─────────────────────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
+h1 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -.035em;
+}
+
+h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* ─── Skip link (WCAG 2.4.1) ─────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: .75rem;
+  left: .75rem;
+  z-index: 100;
+  padding: .5rem 1rem;
+  background: var(--surface);
+  border: 2px solid var(--accent-text);
+  border-radius: .45rem;
+  font-weight: 600;
+  font-size: .875rem;
+  color: var(--text);
+  text-decoration: none;
+  /* Visually hidden until focused */
+  clip-path: inset(50%);
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: none;
+}
+
+.skip-link:focus-visible {
+  pointer-events: auto;
+  clip-path: none;
+  overflow: visible;
+  width: auto;
+  height: auto;
+  margin: 0;
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+
+/* ─── Brand ─────────────────────────────────────────────────────────── */
+.brand {
+  display: inline-flex;
+  gap: .7rem;
+  align-items: center;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: .55rem;
+  background: var(--accent);
+  color: #10261b;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  /* visible on desktop, hidden on mobile via sidebar layout */
+}
+
+/* ─── Auth ───────────────────────────────────────────────────────────── */
+.auth-frame {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.auth-card,
+.panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: .9rem;
+  padding: clamp(1.15rem, 4vw, 2rem);
+}
+
+.auth-card {
+  width: min(100%, 27rem);
+}
+
+.auth-card h1 {
+  margin-top: 2rem;
+}
+
+.auth-card h1+p,
+.panel h2+p,
+.page-header h1+p {
+  margin-top: .55rem;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+label {
+  display: grid;
+  gap: .35rem;
+  font-size: .9rem;
+}
+
+input {
+  padding: .65rem .75rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  background: var(--bg);
+  width: 100%;
+  min-height: 44px;
+}
+
+/* ─── Button ─────────────────────────────────────────────────────────── */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 44px;
+  background: var(--accent);
+  color: #10261b;
+  padding: .55rem .95rem;
+  border-radius: .5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 150ms ease, opacity 150ms ease;
+  touch-action: manipulation;
+}
+
+.auth-card .button {
+  width: 100%;
+}
+
+.button.secondary {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.button:hover {
+  filter: brightness(.92);
+}
+
+.button:active {
+  filter: brightness(.86);
+}
+
+/* Active tactile tap feedback for touch devices & mobile */
+button,
+.button,
+.journal-nav-btn,
+[data-slot="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:active,
+.button:active,
+.journal-nav-btn:active,
+[data-slot="button"]:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+  transition: transform 60ms ease-out, opacity 60ms ease-out;
+}
+
+.panel p+.button {
+  margin-top: 1.15rem;
+}
+
+/* ─── Focus ──────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid #26895d;
+  outline-offset: 3px;
+}
+
+/* ─── Notice / alert ─────────────────────────────────────────────────── */
+/* Warning-toned alert box — orange border + subtle warm tint */
+.notice {
+  border: 1px solid var(--notice-border);
+  background: var(--notice-bg);
+  padding: .75rem 1rem;
+  border-radius: .5rem;
+  margin-block: 1rem;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+/* ─── App shell ──────────────────────────────────────────────────────── */
+.shell {
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 14rem minmax(0, 1fr);
+  position: relative;
+}
+
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  padding: 1.25rem;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: .25rem;
+  margin-top: 2rem;
+}
+
+.sidebar nav a,
+.sidebar nav .journal-nav-btn {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: .4rem .7rem;
+  border-radius: .45rem;
+  transition: background 120ms, filter 120ms;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.sidebar nav a:hover,
+.sidebar nav .journal-nav-btn:hover {
+  background: var(--bg);
+}
+
+.content {
+  padding: clamp(1rem, 5vw, 4rem);
+  width: min(100%, 76rem);
+}
+
+.page-header {
+  margin-bottom: 1.55rem;
+}
+
+.split {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.account-list {
+  display: grid;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.account {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .4rem 1rem;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-border: var(--line);
+  --color-muted: var(--bg);
+  --color-muted-foreground: var(--muted);
+  --color-primary: var(--accent);
+  --color-link: var(--accent-text);
+  --color-destructive: #e05050;
+  --color-primary-foreground: #10261b;
+}
+
+.journal-nav a,
+.journal-nav .journal-nav-btn {
+  gap: .55rem;
+  color: var(--muted);
+  transition: color 120ms, background 120ms;
+}
+
+.journal-nav a:hover,
+.journal-nav .journal-nav-btn:hover {
+  color: var(--text);
+}
+
+.journal-nav a[aria-current="page"] {
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ─── Mobile breakpoint ──────────────────────────────────────────────── */
+@media (max-width: 660px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .fields {
+    grid-template-columns: 1fr;
+  }
+
+  /* Sidebar becomes a thin top bar on mobile */
+  .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: .6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+  }
+
+  .sidebar nav {
+    display: flex;
+    margin-top: 0;
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  /* hide text — icon stays */
+  /* Bottom nav (fixed) */
+  .sidebar .journal-nav {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 1000;
+    pointer-events: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .25rem;
+    margin: 0;
+    /* Landscape safe-area: left + right + bottom */
+    padding:
+      .35rem calc(.5rem + env(safe-area-inset-right, 0px)) calc(.35rem + env(safe-area-inset-bottom, 0px)) calc(.5rem + env(safe-area-inset-left, 0px));
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .sidebar .journal-nav a,
+  .sidebar .journal-nav .journal-nav-btn {
+    min-height: 54px;
+    flex-direction: column;
+    justify-content: center;
+    gap: .2rem;
+    font-size: .75rem;
+  }
+
+  /* Push main content above fixed bottom nav */
+  .content {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  input,
+  select {
+    font-size: 16px;
+  }
+}
+
+/* ─── Trade calendar ─────────────────────────────────────────────────── */
+.trade-calendar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(.25rem, 1vw, .65rem);
+  padding: 4px;
+  margin: -4px;
+}
+
+/* Calendar nav arrows */
+.calendar-arrow {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  font-size: 1.25rem;
+  touch-action: manipulation;
+  transition: filter 120ms, background 120ms;
+}
+
+.calendar-arrow:hover {
+  filter: brightness(1.15);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.calendar-arrow:active {
+  filter: brightness(.9);
+}
+
+/* Trade day cells */
+.trade-day {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: .4rem;
+  min-height: clamp(3.25rem, 9vw, 6rem);
+  padding: clamp(.25rem, 1.3vw, .75rem);
+  border: 1px solid var(--line);
+  border-radius: .45rem;
+  background: var(--bg);
+  font-size: clamp(.65rem, 1.6vw, .95rem);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  transition: filter 120ms;
+}
+
+.trade-day strong {
+  line-height: 1.15;
+}
+
+.trade-day[data-tone="gain"] {
+  background: var(--gain-bg);
+  color: var(--gain-text);
+  border-color: var(--gain-border);
+}
+
+.trade-day[data-tone="loss"] {
+  background: var(--loss-bg);
+  color: var(--loss-text);
+  border-color: var(--loss-border);
+}
+
+.trade-day[aria-current="date"],
+.trade-day[data-selected="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  box-shadow: 0 0 0 1px var(--accent);
+  z-index: 2;
+  font-weight: 700;
+}
+
+.trade-day[data-tone="gain"] strong {
+  color: var(--gain-text);
+  font-weight: 700;
+}
+
+.trade-day[data-tone="loss"] strong {
+  color: var(--loss-text);
+  font-weight: 700;
+}
+
+.trade-day:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+/* ─── Heatmap Slide Transitions ─────────────────────────────────────── */
+@keyframes heatmap-slide-from-right {
+  0% {
+    opacity: 0.35;
+    transform: translateX(36px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes heatmap-slide-from-left {
+  0% {
+    opacity: 0.35;
+    transform: translateX(-36px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.heatmap-slide-right {
+  animation: heatmap-slide-from-right 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.heatmap-slide-left {
+  animation: heatmap-slide-from-left 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+/* ─── Details / summary: open indicator (issue #6) ──────────────────── */
+/* DON'T hide via list-style without providing explicit directional cue */
+details>summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+details>summary::-webkit-details-marker {
+  display: none;
+}
+
+details>summary::after {
+  content: "›";
+  display: inline-block;
+  font-size: 1.1rem;
+  color: var(--muted);
+  transition: rotate 220ms ease;
+  flex-shrink: 0;
+  margin-left: .5rem;
+}
+
+details[open]>summary::after {
+  rotate: 90deg;
+}
+
+/* ─── Upload dropbox ─────────────────────────────────────────────────── */
+.screenshot-dropbox {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: .65rem;
+  width: 100%;
+  min-height: clamp(15rem, 42vw, 24rem);
+  padding: 1.5rem;
+  border: 2px dashed var(--line);
+  border-radius: .9rem;
+  background: var(--surface);
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 180ms, background 180ms, filter 150ms;
+}
+
+.screenshot-dropbox svg {
+  color: var(--accent-text);
+  transition: transform 200ms;
+}
+
+.screenshot-dropbox:active {
+  filter: brightness(.92);
+}
+
+.screenshot-dropbox:has(:focus-visible) {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 3px;
+}
+
+.screenshot-dropbox:hover svg,
+.screenshot-dropbox[data-dragging="true"] svg {
+  transform: translateY(-3px);
+}
+
+.screenshot-dropbox:hover,
+.screenshot-dropbox[data-dragging="true"] {
+  border-color: var(--accent-text);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+/* ─── Review badge states (issue #9) ────────────────────────────────── */
+.badge-ready {
+  border-color: #3d9e68;
+  color: #3d9e68;
+}
+
+.badge-needs-review {
+  border-color: #c97e3d;
+  color: #c97e3d;
+}
+
+.badge-done {
+  border-color: var(--muted);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 8%, var(--surface));
+}
+
+/* ─── Upload item state colors (issue #7) ───────────────────────────── */
+.state-success {
+  color: #3d9e68;
+}
+
+.state-error {
+  color: #e05050;
+}
+
+.state-pending {
+  color: var(--muted);
+}
+
+/* Dashboard figures stay on a single line as their cards reflow. */
+.dashboard-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+}
+
+.daily-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr));
+}
+
+.dashboard-amount {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  overflow-x: auto;
+}
+
+.trade-day {
+  container-type: inline-size;
+  padding-inline: clamp(.2rem, .75vw, .75rem);
+  touch-action: manipulation;
+}
+
+.trade-day strong span {
+  white-space: nowrap;
+  font-size: min(1em, calc(100cqi / var(--amount-characters) / .62));
+}
+
+.calendar-amount-compact {
+  display: none;
+}
+
+@container (width < 5.5rem) {
+  .calendar-amount-full {
+    display: none;
+  }
+
+  .calendar-amount-compact {
+    display: inline;
+  }
+}
+
+/* ─── Modal overlay & dialog ─────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: auto;
+  background: color-mix(in srgb, black 72%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  animation: modal-fade-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-card {
+  position: relative;
+  width: min(100%, 34rem);
+  max-height: calc(100svh - 2rem);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1.15rem;
+  box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.6);
+  animation: modal-scale-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─── Motion safety ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.history-amount {
+  overflow-x: auto;
+}
+
+.history-amount[data-tone="gain"] {
+  color: var(--gain-text);
+}
+
+.history-amount[data-tone="loss"] {
+  color: var(--loss-text);
+}
+
+.screenshot-import-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(calc(100% - 2rem), 34rem);
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 1.15rem;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.screenshot-import-dialog::backdrop {
+  background: color-mix(in srgb, black 72%, transparent);
+}
+
+.execution-table-container {
+  container-type: inline-size;
+  overflow-x: auto;
+}
+
+.execution-table-heading,
+.execution-mobile-label {
+  color: var(--muted);
+}
+
+.execution-mobile-label {
+  display: none;
+}
+
+.execution-row > td {
+  padding-block: .5rem;
+}
+
+@container (width < 24rem) {
+  .execution-table,
+  .execution-table tbody {
+    display: block;
+  }
+
+  .execution-table-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .execution-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "action price" "time total";
+    align-items: baseline;
+    gap: .5rem .75rem;
+    padding-block: .75rem;
+    line-height: 1.4;
+  }
+
+  .execution-row > td { padding: 0; }
+  .execution-action { grid-area: action; }
+  .execution-time { grid-area: time; }
+  .execution-price { grid-area: price; }
+  .execution-total { grid-area: total; }
+  .execution-mobile-label { display: inline; }
+}
