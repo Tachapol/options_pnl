@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDimeAccount } from "@/lib/dime-account";
 import { isJournalMonth } from "@/lib/journal-month";
 import { getMonthlyTrades } from "@/lib/monthly-trades";
-import { getPerformanceData } from "@/lib/performance";
 import { requireSession } from "@/lib/session";
 import { cents, signedUsd, formatThbEstimate } from "@/lib/summary-csv";
 
@@ -25,14 +24,10 @@ export default async function Overview({ searchParams }: {
   }
 
   type TradeTotals = { gross: string; trades: number; wins: number; latest_day: string | null };
-  const [
-    { data: totals, error: totalsError },
-    performanceData,
-  ] = await Promise.all([
-    client.rpc("journal_dashboard_totals", { target_account: account.id })
-      .select("gross,trades,wins,latest_day").single<TradeTotals>(),
-    getPerformanceData(client, account.id),
-  ]);
+  const { data: totals, error: totalsError } = await client
+    .rpc("journal_dashboard_totals", { target_account: account.id })
+    .select("gross,trades,wins,latest_day")
+    .single<TradeTotals>();
   const metrics = totals ? [
     ["Gross P&L", totals.trades ? signedUsd(cents(totals.gross)) : "—"],
     ["Closed trades", String(totals.trades)],
@@ -105,8 +100,7 @@ export default async function Overview({ searchParams }: {
         </div>
       )}
       <MonthlyReview key={`${account.id}/${initialMonth}/${initialDay ?? ""}`} account={account.id}
-        initialMonth={initialMonth} initialDay={initialDay} initialTrades={monthlyTrades} timeZone={account.timezone}
-        allTimePerformance={performanceData} />
+        initialMonth={initialMonth} initialDay={initialDay} initialTrades={monthlyTrades} timeZone={account.timezone} />
     </>
   );
 }

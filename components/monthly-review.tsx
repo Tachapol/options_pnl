@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ExecutionTable } from "@/components/execution-table";
-import { PerformanceVisualizer } from "@/components/performance-visualizer";
-import { summarizePerformance, type PerformanceData } from "@/lib/performance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isJournalMonth, shiftJournalMonth } from "@/lib/journal-month";
 import type { MonthlyTrades } from "@/lib/monthly-trades";
@@ -40,13 +38,12 @@ function formatReturn(buyPriceStr: string | null, sellPriceStr: string | null): 
   return `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
 }
 
-export function MonthlyReview({ account, initialMonth, initialDay, initialTrades, timeZone, allTimePerformance }: {
+export function MonthlyReview({ account, initialMonth, initialDay, initialTrades, timeZone }: {
   account: string;
   initialMonth: string;
   initialDay?: string;
   initialTrades: MonthlyTrades | null;
   timeZone: string;
-  allTimePerformance: PerformanceData | null;
 }) {
   const [{ month: selectedMonth, day }, setSelection] = useState({ month: initialMonth, day: initialDay });
   const [expandedTradeId, setExpandedTradeId] = useState<string | null>(null);
@@ -133,7 +130,7 @@ export function MonthlyReview({ account, initialMonth, initialDay, initialTrades
   useEffect(() => {
     if (monthReady) {
       for (const neighbor of [previous, next]) {
-        if (isJournalMonth(neighbor)) void loadMonth(neighbor).catch(() => {});
+        if (isJournalMonth(neighbor)) void loadMonth(neighbor).catch(() => { });
       }
       return;
     }
@@ -148,9 +145,6 @@ export function MonthlyReview({ account, initialMonth, initialDay, initialTrades
   const loading = trades === undefined;
   const error = trades === null;
   const monthTrades = trades ?? emptyTrades;
-  const monthPerformance = useMemo(() => trades == null ? trades : summarizePerformance(
-    trades.map((trade) => ({ day: trade.sessionDate, gross: trade.gross })),
-  ), [trades]);
 
   const { days, gross, wins, hasWeekendTrades } = useMemo(() => {
     const days = new Map<string, { gross: bigint; trades: MonthlyTrades }>();
@@ -231,23 +225,21 @@ export function MonthlyReview({ account, initialMonth, initialDay, initialTrades
                       <span className="inline-block h-5 w-16 animate-pulse rounded bg-muted/60" aria-hidden="true" />
                     ) : (
                       <>
-                        <div className={`text-2xl sm:text-3xl font-bold tracking-tight font-mono ${
-                          monthTrades.length && gross > 0n
-                            ? "text-emerald-500 dark:text-emerald-400"
-                            : monthTrades.length && gross < 0n
+                        <div className={`text-2xl sm:text-3xl font-bold tracking-tight font-mono ${monthTrades.length && gross > 0n
+                          ? "text-emerald-500 dark:text-emerald-400"
+                          : monthTrades.length && gross < 0n
                             ? "text-rose-500 dark:text-rose-400"
                             : "text-foreground"
-                        }`}>
+                          }`}>
                           {monthTrades.length ? signedUsd(gross) : "—"}
                         </div>
                         {monthTrades.length > 0 && (
-                          <div className={`text-xs sm:text-sm font-mono font-normal mt-0.5 ${
-                            gross > 0n
-                              ? "text-emerald-600/80 dark:text-emerald-400/80"
-                              : gross < 0n
+                          <div className={`text-xs sm:text-sm font-mono font-normal mt-0.5 ${gross > 0n
+                            ? "text-emerald-600/80 dark:text-emerald-400/80"
+                            : gross < 0n
                               ? "text-rose-600/80 dark:text-rose-400/80"
                               : "text-muted-foreground"
-                          }`}>
+                            }`}>
                             {formatThbEstimate(gross)}
                           </div>
                         )}
@@ -284,13 +276,12 @@ export function MonthlyReview({ account, initialMonth, initialDay, initialTrades
               >
                 <div
                   key={selectedMonth}
-                  className={`trade-calendar ${
-                    slideDir === "left"
-                      ? "heatmap-slide-right"
-                      : slideDir === "right"
+                  className={`trade-calendar ${slideDir === "left"
+                    ? "heatmap-slide-right"
+                    : slideDir === "right"
                       ? "heatmap-slide-left"
                       : ""
-                  }`}
+                    }`}
                   data-weekends={hasWeekendTrades || undefined}
                   aria-busy={loading}
                   onAnimationEnd={() => setSlideDir(null)}
@@ -351,17 +342,6 @@ export function MonthlyReview({ account, initialMonth, initialDay, initialTrades
       </Card>
 
       {/* ─── Daily Trades Detail Section (Clean & Minimal Version) ────────── */}
-      <PerformanceVisualizer
-        month={selectedMonth}
-        monthData={monthPerformance}
-        allTimeData={allTimePerformance}
-        selectedDay={selectedDay}
-        onSelectDay={(chosenDay) => {
-          setSelection({ month: chosenDay.slice(0, 7), day: chosenDay });
-          setExpandedTradeId(null);
-        }}
-      />
-
       {!error && (
         <Card id="daily-trades" className="overflow-hidden border border-border" aria-labelledby="daily-review-title">
           <CardHeader className="pb-2 pt-5 px-5 sm:px-6">
@@ -386,22 +366,20 @@ export function MonthlyReview({ account, initialMonth, initialDay, initialTrades
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-y-5 gap-x-6 sm:gap-x-8 pt-2 pb-5">
                   <div className="col-span-2 sm:col-span-1">
                     <div className="text-xs sm:text-sm text-muted-foreground">Gross P&amp;L</div>
-                    <div className={`text-2xl sm:text-3xl font-bold tracking-tight mt-1 font-mono ${
-                      daily.gross > 0n
-                        ? "text-emerald-500 dark:text-emerald-400"
-                        : daily.gross < 0n
+                    <div className={`text-2xl sm:text-3xl font-bold tracking-tight mt-1 font-mono ${daily.gross > 0n
+                      ? "text-emerald-500 dark:text-emerald-400"
+                      : daily.gross < 0n
                         ? "text-rose-500 dark:text-rose-400"
                         : "text-foreground"
-                    }`}>
+                      }`}>
                       {signedUsd(daily.gross)}
                     </div>
-                    <div className={`text-xs sm:text-sm font-mono mt-0.5 ${
-                      daily.gross > 0n
-                        ? "text-emerald-600/80 dark:text-emerald-400/80"
-                        : daily.gross < 0n
+                    <div className={`text-xs sm:text-sm font-mono mt-0.5 ${daily.gross > 0n
+                      ? "text-emerald-600/80 dark:text-emerald-400/80"
+                      : daily.gross < 0n
                         ? "text-rose-600/80 dark:text-rose-400/80"
                         : "text-muted-foreground"
-                    }`}>
+                      }`}>
                       {formatThbEstimate(daily.gross)}
                     </div>
                   </div>
@@ -451,11 +429,10 @@ export function MonthlyReview({ account, initialMonth, initialDay, initialTrades
                       <div
                         key={trade.id}
                         role="listitem"
-                        className={`rounded-xl border transition-colors ${
-                          isExpanded
-                            ? "border-border bg-card shadow-xs"
-                            : "border-border/70 hover:border-border bg-card/40"
-                        }`}
+                        className={`rounded-xl border transition-colors ${isExpanded
+                          ? "border-border bg-card shadow-xs"
+                          : "border-border/70 hover:border-border bg-card/40"
+                          }`}
                       >
                         {/* Header Row (Click to toggle) */}
                         <button
@@ -487,13 +464,12 @@ export function MonthlyReview({ account, initialMonth, initialDay, initialTrades
                           </div>
 
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            <span className={`text-base sm:text-lg font-bold font-mono tracking-tight ${
-                              isGain
-                                ? "text-emerald-500 dark:text-emerald-400"
-                                : tradeGrossCents < 0n
+                            <span className={`text-base sm:text-lg font-bold font-mono tracking-tight ${isGain
+                              ? "text-emerald-500 dark:text-emerald-400"
+                              : tradeGrossCents < 0n
                                 ? "text-rose-500 dark:text-rose-400"
                                 : "text-foreground"
-                            }`}>
+                              }`}>
                               {signedUsd(tradeGrossCents)}
                             </span>
                             <svg
@@ -519,6 +495,9 @@ export function MonthlyReview({ account, initialMonth, initialDay, initialTrades
                             <div className="mt-3">
                               <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-2">Transactions</h4>
                               <ExecutionTable executions={trade.executions} />
+                              {trade.executions.some((execution) => execution.quantity === null || execution.price === null) && (
+                                <p className="mt-2 text-xs text-muted-foreground">Individual fill sizes or prices are unavailable in the source.</p>
+                              )}
                             </div>
 
                             {trade.image_id && (
