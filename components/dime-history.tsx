@@ -12,8 +12,8 @@ type HistoryFill = {
 
 function fillStatus(fill: HistoryFill) {
   if (fill.side === "Buy") {
-    if (fill.open_quantity === null) return "FIFO pending";
-    return Number(fill.open_quantity) > 0 ? `Open · ${fill.open_quantity} left` : "Closed";
+    if (fill.open_quantity === null) return "Waiting for FIFO match";
+    return Number(fill.open_quantity) > 0 ? `Open (${fill.open_quantity} left)` : "Closed";
   }
 
   const matched = Number(fill.matched ?? 0);
@@ -33,7 +33,7 @@ function toTransaction(fill: HistoryFill, timeZone: string): HistoryTransaction 
     gross: gross != null ? grossTradeAmount(gross) : undefined,
     status: fillStatus(fill),
     evidence: <Link href={`/imports/dime/${fill.image_id}`} prefetch={false}
-      className="inline-flex min-h-11 items-center text-link underline">Source screenshot</Link>,
+      className="inline-flex min-h-11 items-center text-link underline">View screenshot ↗</Link>,
   };
 }
 
@@ -44,7 +44,7 @@ export async function DimeHistory({ account, timeZone }: { account: string; time
 
   return <Card aria-labelledby="dime-transactions">
     <CardHeader className="px-3 sm:px-5">
-      <CardTitle id="dime-transactions">Dime transactions</CardTitle>
+      <CardTitle id="dime-transactions">Dime Screenshot Fills</CardTitle>
     </CardHeader>
     <CardContent className="px-3 sm:px-5">
       {error ? <p role="alert">Dime transactions could not be loaded.</p> :

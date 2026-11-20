@@ -23,9 +23,9 @@ export type ReviewRecord = {
 };
 
 const overlapText = {
-  csv: "Possible CSV duplicate. A matching trade exists in historical summaries.",
-  fill: "Possible duplicate fill. An identical screenshot fill was previously recorded.",
-  broker_id: "This broker fill ID is already in Trade History.",
+  csv: "ตรวจพบออเดอร์ในประวัติเดิมที่คล้ายกัน (กรุณาเลือกว่าเป็นรายการซ้ำหรือไม้ใหม่ด้านล่าง)",
+  fill: "ตรวจพบออเดอร์จากภาพหน้าจอก่อนหน้าที่คล้ายกัน (กรุณาเลือกว่าเป็นรายการซ้ำหรือไม้ใหม่ด้านล่าง)",
+  broker_id: "Broker Fill ID นี้มีอยู่ในระบบแล้ว",
 };
 
 const isUnexecuted = (row: Fill) => row.status === "pending" || row.status === "cancelled";
@@ -33,10 +33,10 @@ const hasExecution = (row: Fill) => row.quantity !== null || row.price !== null;
 
 function problems(record: ReviewRecord) {
   return [
-    ...missingFields(record.row).map((key) => `${labels[key]} missing`),
+    ...missingFields(record.row).map((key) => `กรุณาระบุ ${labels[key]}`),
     ...(record.overlap ? [overlapText[record.overlap]] : []),
-    ...(record.row.side?.includes(" to ") && !isUnexecuted(record.row) ? ["Short options require separate accounting."] : []),
-    ...(isUnexecuted(record.row) && hasExecution(record.row) ? ["Verify status against the visible execution evidence."] : []),
+    ...(record.row.side?.includes(" to ") && !isUnexecuted(record.row) ? ["Short options ต้องใช้การคำนวณแยกต่างหาก"] : []),
+    ...(isUnexecuted(record.row) && hasExecution(record.row) ? ["โปรดตรวจสอบสถานะออเดอร์กับภาพหน้าจอ"] : []),
   ];
 }
 
@@ -389,19 +389,30 @@ export function DimeReview({
             </div>
           )}
 
-          {/* ─── Overlap Resolution (Interactive Diff) ─────────────── */}
+          {/* ─── Overlap Resolution (Intuitive Action Buttons) ─────── */}
           {!isConfirmed && record.overlap && record.overlap !== "broker_id" && (
-            <div className="rounded-xl border border-border bg-card p-4 grid gap-3 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Duplicate vs Separate Trade Decision
+            <div className="rounded-xl border border-amber-500/30 bg-card p-4 grid gap-3.5 shadow-xs">
+              <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-border/60 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/15 text-amber-500 font-bold text-xs">
+                    ?
+                  </span>
+                  <span className="text-sm font-bold text-foreground">
+                    ตรวจพบรายการที่อาจซ้ำกันในระบบ
+                  </span>
+                </div>
+                <span className="text-[11px] font-medium text-amber-500">
+                  {resolution(record) === "unresolved" ? "⚠️ โปรดเลือก 1 ข้อเพื่อยืนยัน" : "✓ บันทึกการเลือกแล้ว"}
                 </span>
-                <span className="text-[11px] text-amber-500 font-medium">Compare with history</span>
               </div>
+
+              <p className="text-xs text-muted-foreground">
+                ระบบพบออเดอร์ในประวัติเทรดเดิมที่มีสัญญา วันที่ หรือราคาตรงกัน กรุณาเลือก:
+              </p>
 
               {record.evidence && record.evidence.length > 0 && (
                 <div className="rounded-lg bg-muted/50 p-2.5 text-xs font-mono text-muted-foreground">
-                  <span className="font-semibold text-foreground">Matched in Trade History:</span>
+                  <span className="font-semibold text-foreground">ข้อมูลที่ตรงกันในประวัติ:</span>
                   <ul className="mt-1 space-y-1">
                     {record.evidence.map((entry, idx) => (
                       <li key={idx} className="truncate">↳ {entry}</li>
@@ -410,47 +421,88 @@ export function DimeReview({
                 </div>
               )}
 
-              <div className="grid gap-2 sm:grid-cols-2 pt-1">
+              {/* Two clear, distinct action buttons */}
+              <div className="grid gap-2.5 sm:grid-cols-2 pt-1">
+                {/* Button 1: Duplicate (Skip) */}
                 <button
                   type="button"
                   onClick={() =>
                     setResolutions((current) => ({ ...current, [record.id]: "duplicate" }))
                   }
-                  className={`rounded-xl border p-3 text-left transition-all cursor-pointer ${
+                  className={`group relative rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
                     resolution(record) === "duplicate"
-                      ? "border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500"
-                      : "border-border bg-muted/20 hover:border-border"
+                      ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/50 shadow-xs"
+                      : "border-border bg-card/60 hover:border-amber-500/40 hover:bg-muted/40"
                   }`}
                 >
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span>Already Counted (Duplicate)</span>
-                    {resolution(record) === "duplicate" && <span className="text-emerald-500">✓ Selected</span>}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                        resolution(record) === "duplicate"
+                          ? "bg-amber-500 text-black"
+                          : "bg-muted text-muted-foreground"
+                      }`}>
+                        ✕
+                      </span>
+                      <strong className="text-xs sm:text-sm font-bold text-foreground">
+                        มีในระบบแล้ว (รายการซ้ำ)
+                      </strong>
+                    </div>
+                    {resolution(record) === "duplicate" && (
+                      <span className="text-[11px] font-bold text-amber-500">
+                        ✓ เลือกแล้ว
+                      </span>
+                    )}
                   </div>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    This execution is already in your journal. Skip adding it again.
+                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed pl-8">
+                    ออเดอร์นี้เคยบันทึกไปแล้ว ไม่ต้องนำเข้าซ้ำ (ข้ามไม้นี้)
                   </p>
                 </button>
 
+                {/* Button 2: New Distinct Fill (Import) */}
                 <button
                   type="button"
                   onClick={() =>
                     setResolutions((current) => ({ ...current, [record.id]: "distinct" }))
                   }
-                  className={`rounded-xl border p-3 text-left transition-all cursor-pointer ${
+                  className={`group relative rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
                     resolution(record) === "distinct"
-                      ? "border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500"
-                      : "border-border bg-muted/20 hover:border-border"
+                      ? "border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/50 shadow-xs"
+                      : "border-border bg-card/60 hover:border-emerald-500/40 hover:bg-muted/40"
                   }`}
                 >
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span>Distinct / New Fill</span>
-                    {resolution(record) === "distinct" && <span className="text-emerald-500">✓ Selected</span>}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                        resolution(record) === "distinct"
+                          ? "bg-emerald-500 text-black"
+                          : "bg-muted text-muted-foreground"
+                      }`}>
+                        ✓
+                      </span>
+                      <strong className="text-xs sm:text-sm font-bold text-foreground">
+                        เป็นไม้ใหม่ (บันทึกเพิ่ม)
+                      </strong>
+                    </div>
+                    {resolution(record) === "distinct" && (
+                      <span className="text-[11px] font-bold text-emerald-500">
+                        ✓ เลือกแล้ว
+                      </span>
+                    )}
                   </div>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    This is a separate order fill at a different time/price. Import it.
+                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed pl-8">
+                    เป็นคนละออเดอร์ที่เทรดเพิ่ม บันทึกเข้าพอร์ตตามปกติ
                   </p>
                 </button>
               </div>
+
+              {resolution(record) === "unresolved" && (
+                <div className="text-center py-1">
+                  <span className="text-xs text-amber-500 font-medium animate-pulse">
+                    👆 กรุณากดเลือกปุ่มใดปุ่มหนึ่งข้างบน เพื่อดำเนินการบันทึก
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -586,8 +638,35 @@ export function DimeReview({
             No items were found in this screenshot.
           </p>
         ) : (
-          <div className="grid gap-3.5">
-            {rows.map(renderTradeCard)}
+          <div className="grid gap-6">
+            {rows.filter((r) => !isUnexecuted(r.row)).length > 0 && (
+              <div className="grid gap-3">
+                <div className="flex items-center gap-2 px-1">
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                    รายการเทรดที่ตรวจพบ ({rows.filter((r) => !isUnexecuted(r.row)).length})
+                  </h3>
+                </div>
+                <div className="grid gap-3.5">
+                  {rows.filter((r) => !isUnexecuted(r.row)).map(renderTradeCard)}
+                </div>
+              </div>
+            )}
+
+            {rows.filter((r) => isUnexecuted(r.row)).length > 0 && (
+              <div className="grid gap-3 pt-2">
+                <div className="flex items-center gap-2 px-1">
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                    คำสั่งที่รอหรือถูกยกเลิก ({rows.filter((r) => isUnexecuted(r.row)).length})
+                  </h3>
+                  <span className="text-xs text-muted-foreground">
+                    (ไม่มีการซื้อขายเกิดขึ้นจริง)
+                  </span>
+                </div>
+                <div className="grid gap-3.5">
+                  {rows.filter((r) => isUnexecuted(r.row)).map(renderTradeCard)}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -631,11 +710,11 @@ export function DimeReview({
               {pending ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                  Saving…
+                  กำลังบันทึก…
                 </>
               ) : (
                 <>
-                  <span>Save {readyRows.length} Ready Trades</span>
+                  <span>บันทึก {readyRows.length} รายการที่พร้อม</span>
                   <kbd className="hidden md:inline-block rounded bg-black/20 px-1.5 py-0.5 text-[10px] font-mono">
                     ⌘↵
                   </kbd>

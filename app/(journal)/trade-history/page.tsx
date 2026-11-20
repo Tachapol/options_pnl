@@ -35,7 +35,7 @@ export default async function TradeHistory({ searchParams }: {
     <div className="grid grid-cols-1 gap-4">
       <DimeHistory account={account.id} timeZone={account.timezone} />
       <Card aria-labelledby="csv-trades">
-        <CardHeader className="px-3 sm:px-5"><CardTitle id="csv-trades">CSV trade summaries</CardTitle></CardHeader>
+        <CardHeader className="px-3 sm:px-5"><CardTitle id="csv-trades">CSV Trade Summaries</CardTitle></CardHeader>
         <CardContent className="px-3 sm:px-5">
           {rowsError ? <p role="alert">Trade summaries could not be loaded.</p> : rows?.length ? (
             <TradeHistoryList transactions={rows.map((row) => ({
